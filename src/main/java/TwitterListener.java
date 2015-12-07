@@ -1,25 +1,23 @@
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.StringSerializer;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 import org.apache.kafka.clients.producer.KafkaProducer;
 
 import java.util.Properties;
-import java.util.concurrent.LinkedBlockingQueue;
 
 
 class TweetListener implements StatusListener {
 
-    LinkedBlockingQueue<String> queue = null;
     KafkaProducer producer;
 
     public TweetListener (){
         Properties props = new Properties();;
-        props.put("metadata.broker.list", "localhost:9092");
-        props.put("serializer.class", "kafka.serializer.StringEncoder");
-        props.put("request.required.acks", "1");
-        props.put("bootstrap.servers", "127.0.0.1:8080");
-        props.put("key.serializer", org.apache.kafka.common.serialization.ByteArraySerializer.class);
-        props.put("value.serializer", org.apache.kafka.common.serialization.ByteArraySerializer.class);
+        props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
+        props.setProperty(ProducerConfig.METADATA_FETCH_TIMEOUT_CONFIG,Integer.toString(5 * 1000));
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
         producer = new KafkaProducer(props);
     }
 
@@ -32,7 +30,7 @@ class TweetListener implements StatusListener {
                 producer.send(data);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("wrong");
         }
     }
 
