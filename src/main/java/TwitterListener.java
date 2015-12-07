@@ -26,7 +26,7 @@ class TweetListener implements StatusListener {
             if (status.getLang().equals("en") && !status.isRetweet()) {
                 String statusText = status.getText();
                 System.out.println(statusText);
-                ProducerRecord<String,String> data = new ProducerRecord("test",statusText);
+                ProducerRecord<String,String> data = new ProducerRecord("tweets",statusText);
                 producer.send(data);
             }
         } catch (Exception e) {
