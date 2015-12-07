@@ -1,12 +1,25 @@
+import kafka.producer.Producer;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
+import kafka.producer.ProducerConfig;
+
+import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
 class TweetListener implements StatusListener {
 
     LinkedBlockingQueue<String> queue = null;
+    Producer<String, String> producer;
+
+    public TweetListener (){
+        Properties props = new Properties();;
+        props.put("metadata.broker.list", "localhost:9092");
+        props.put("serializer.class", "kafka.serializer.StringEncoder");
+        ProducerConfig config = new ProducerConfig(props);
+        producer = new Producer<String, String>(config);
+    }
 
     public void onStatus(Status status) {
         try {
@@ -46,7 +59,10 @@ class Main {
 
         twitterStream = fact.getInstance();
 
-        twitterStream.addListener(new TweetListener());
+
+        TweetListener tweetListener = new TweetListener();
+
+        twitterStream.addListener(tweetListener);
 
         twitterStream.sample();
     }
