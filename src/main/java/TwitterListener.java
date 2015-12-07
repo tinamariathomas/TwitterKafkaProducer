@@ -1,8 +1,7 @@
-import kafka.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
-
-import kafka.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.KafkaProducer;
 
 import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -11,20 +10,26 @@ import java.util.concurrent.LinkedBlockingQueue;
 class TweetListener implements StatusListener {
 
     LinkedBlockingQueue<String> queue = null;
-    Producer<String, String> producer;
+    KafkaProducer producer;
 
     public TweetListener (){
         Properties props = new Properties();;
         props.put("metadata.broker.list", "localhost:9092");
         props.put("serializer.class", "kafka.serializer.StringEncoder");
-        ProducerConfig config = new ProducerConfig(props);
-        producer = new Producer<String, String>(config);
+        props.put("request.required.acks", "1");
+        props.put("bootstrap.servers", "127.0.0.1:8080");
+        props.put("key.serializer", org.apache.kafka.common.serialization.ByteArraySerializer.class);
+        props.put("value.serializer", org.apache.kafka.common.serialization.ByteArraySerializer.class);
+        producer = new KafkaProducer(props);
     }
 
     public void onStatus(Status status) {
         try {
             if (status.getLang().equals("en") && !status.isRetweet()) {
-                System.out.println(status.getText());
+                String statusText = status.getText();
+                System.out.println(statusText);
+                ProducerRecord<String,String> data = new ProducerRecord("test",statusText);
+                producer.send(data);
             }
         } catch (Exception e) {
             e.printStackTrace();
